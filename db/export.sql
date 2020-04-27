@@ -12,13 +12,13 @@ SELECT match_rule, osm.objtype, osm.osm_id, osm.latitude as "osm_latitude", osm.
 		LEFT JOIN osm ON matches.master_osm_id=osm.osm_id
 	WHERE osm.repd_id_str IS NULL   -- this one excludes all OSM items with no listed REPD
 		OR (NOT osm.repd_id_str=cast(repd.repd_id as varchar(10)))   -- and this one adds in the ones present but mismatching
-	ORDER BY repd.repd_id;
+	ORDER BY (match_rule IN ('4', '4a')), repd.repd_id;
 
 \copy "tmp_export_osm_repd" TO '../data/exported/osm_repd_proposed_matches.csv' WITH DELIMITER ',' CSV HEADER;
 
 -- "Grand unified [over osm & repd] CSV of PV geolocations"
 CREATE TEMP TABLE "tmp_export_pvgeo" AS
-	SELECT repd.old_repd_id, repd.repd_id, osm.objtype as osm_objtype, osm.osm_id, repd.capacity as capacity_repd, osm.capacity as capacity_osm, repd.dev_status_short, repd.operational,
+	SELECT repd.old_repd_id, repd.repd_id, osm.objtype as osm_objtype, osm.osm_id, repd.capacity as capacity_repd, osm.capacity * 0.001 as capacity_osm, repd.dev_status_short, repd.operational,
 	COALESCE(osm.latitude, repd.latitude) as latitude,
 	COALESCE(osm.longitude, repd.longitude) as longitude,
 	osm.area, osm.located, osm.orientation, osm.tag_power as osm_power_type, osm.tag_start_date as osm_tag_start_date, matches.match_rule
