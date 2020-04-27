@@ -72,6 +72,10 @@ data tables. This also contains a column called `match_rule`, which refers to th
 
 ## Using this repo
 
+You should check this out using `git clone' (because we use git submodules to refer to an external script). The external script can then be added by running the command:
+
+`git submodule update --init --recursive`
+
 ### Install requirements
 
 1. Install [PostgreSQL](https://www.postgresql.org/download/)
