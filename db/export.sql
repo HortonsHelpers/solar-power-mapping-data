@@ -23,11 +23,11 @@ CREATE TEMP TABLE "tmp_export_pvgeo" AS
 	COALESCE(osm.longitude, repd.longitude) as longitude,
 	osm.area, osm.located, osm.orientation, osm.tag_power as osm_power_type, osm.tag_start_date as osm_tag_start_date, matches.match_rule
 	FROM (matches
-		FULL JOIN repd ON (matches.master_repd_id=repd.repd_id
+		FULL JOIN repd ON (matches.master_repd_id=repd.master_repd_id
 			AND repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Withdrawn',  'Planning Permission Expired')
 			-- AND repd.repd_id NOT IN (1892, 1894, 6750))   -- skip three named "schemes"
 			AND match_rule NOT IN ('4', '4a'))   -- skip matches that were "schemes"
-		FULL JOIN osm ON matches.master_osm_id=osm.osm_id)
+		FULL JOIN osm ON matches.master_osm_id=osm.master_osm_id)
 	WHERE dev_status_short IS NULL OR
 			repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Withdrawn',  'Planning Permission Expired')
 	ORDER BY repd.repd_id, osm.osm_id;
