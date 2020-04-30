@@ -18,7 +18,7 @@ SELECT match_rule, osm.objtype, osm.osm_id, osm.latitude as "osm_latitude", osm.
 
 -- "Grand unified [over osm & repd] CSV of PV geolocations"
 CREATE TEMP TABLE "tmp_export_pvgeo" AS
-	SELECT DISTINCT repd.old_repd_id, repd.repd_id, osm.objtype as osm_objtype, osm.osm_id, repd.capacity as capacity_repd, osm.capacity * 0.001 as capacity_osm, repd.dev_status_short, repd.operational,
+	SELECT DISTINCT repd.old_repd_id, repd.repd_id, repd.site_name as repd_site_name, osm.objtype as osm_objtype, osm.osm_id, repd.capacity as capacity_repd, osm.capacity * 0.001 as capacity_osm, repd.dev_status_short, repd.operational,
 	COALESCE(osm.latitude, repd.latitude) as latitude,
 	COALESCE(osm.longitude, repd.longitude) as longitude,
 	osm.area, osm.located, osm.orientation, osm.tag_power as osm_power_type, osm.tag_start_date as osm_tag_start_date,
@@ -26,14 +26,17 @@ CREATE TEMP TABLE "tmp_export_pvgeo" AS
 	matches.match_rule
 	FROM (matches
 		FULL JOIN repd ON (matches.master_repd_id=repd.master_repd_id
+			-- AND repd.repd_id = repd.master_repd_id -- TODO NEW
 			AND repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Withdrawn',  'Planning Permission Expired')
-			-- AND repd.repd_id NOT IN (1892, 1894, 6750))   -- skip three named "schemes"
 			AND match_rule NOT IN ('4', '4a'))   -- skip matches that were "schemes"
-		FULL JOIN osm ON matches.master_osm_id=osm.master_osm_id)
-	WHERE dev_status_short IS NULL OR
-			repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Withdrawn',  'Planning Permission Expired')
+		FULL JOIN osm ON (matches.master_osm_id=osm.master_osm_id
+			-- AND osm.osm_id = osm.master_osm_id -- TODO NEW
+			))
+	WHERE (dev_status_short IS NULL OR repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Withdrawn',  'Planning Permission Expired'))
 	ORDER BY repd.repd_id, osm.osm_id;
 
-\copy "tmp_export_pvgeo" TO '../data/exported/ukpvgeo_points_merged_deduped_osm-repd.csv' WITH DELIMITER ',' CSV HEADER;
+\copy "tmp_export_pvgeo" TO '../data/exported/ukpvgeo_points_merged_deduped_osm-repd_all.csv' WITH DELIMITER ',' CSV HEADER;
+
+\copy (SELECT * FROM tmp_export_pvgeo WHERE (osm_id = osm_cluster_id OR osm_cluster_id IS NULL OR osm_id IS NULL) AND (repd_id = repd_cluster_id OR repd_cluster_id IS NULL OR repd_id IS NULL)) TO '../data/exported/ukpvgeo_points_merged_deduped_osm-repd_clusters.csv' WITH DELIMITER ',' CSV HEADER;
 
 
