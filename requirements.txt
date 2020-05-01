@@ -4,3 +4,5 @@ numpy
 pandas
 scipy
 geopandas
+openpyxl
+sklearn
