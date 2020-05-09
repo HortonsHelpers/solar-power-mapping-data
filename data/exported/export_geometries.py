@@ -15,6 +15,7 @@
 
 
 # TODO include the OSM-to-GeoJSON conversion directly in this script?
+#   could use https://pyrosm.readthedocs.io/en/latest/
 
 
 import csv, os
@@ -78,7 +79,7 @@ for index, row in  gdf[gdf.geom_type=='LineString'].iterrows():
 		print(row.osm_id)
 	else:
 		gdf.loc[index, 'geometry'] = newgeom
-		geomconverted[who] += 1
+		geomconverted['LineString'] += 1
 
 # TODO I can't correctly update the geomcoll for some reason
 if False:
@@ -135,8 +136,8 @@ print(gdf.geom_type.value_counts())
 
 assert udf.geometry.isna().sum()==0, "After creating lat-lon points, no-one should have null geometry: we have %i" % udf.geometry.isna().sum()
 
-# near end: delete columns latitude, longitude, area
-for colname in ['latitude', 'longitude', 'area']:
+# near end: delete columns latitude, longitude -- these were derived from the geometry anyway
+for colname in ['latitude', 'longitude']:
 	if colname in udf:
 		del udf[colname]
 
