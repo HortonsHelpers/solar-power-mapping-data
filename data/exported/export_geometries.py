@@ -29,7 +29,7 @@ geometryfpath = 'data/exported/osm_layers_merged.geojson'
 
 # load ukpvgeo_all.csv to df
 inttype = pd.Int64Dtype()
-df = pd.read_csv(pvexportfpath, dtype={'repd_id':inttype, 'osm_id':inttype, 'repd_cluster_id':inttype, 'osm_cluster_id':inttype})
+df = pd.read_csv(pvexportfpath, dtype={'repd_id':inttype, 'osm_id':inttype, 'repd_cluster_id':inttype, 'osm_cluster_id':inttype, 'num_modules':inttype, 'orientation':inttype})
 # load osm geojson to gdf
 gdf = gpd.read_file(geometryfpath)
 
