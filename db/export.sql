@@ -20,10 +20,10 @@ SELECT match_rule, osm.objtype, osm.osm_id, osm.latitude as "osm_latitude", osm.
 CREATE TEMP TABLE "tmp_export_pvgeo" AS
 	SELECT DISTINCT osm.objtype as osm_objtype, osm.osm_id,
 		repd.repd_id, repd.site_name as repd_site_name,
-		repd.capacity as "capacity_repd_MWp", osm.capacity * 0.001 as "capacity_osm_MWp",
+		repd.capacity::float as "capacity_repd_MWp", osm.capacity * 0.001 as "capacity_osm_MWp",
 	COALESCE(osm.latitude, repd.latitude) as latitude,
 	COALESCE(osm.longitude, repd.longitude) as longitude,
-	osm.area, osm.located, osm.orientation, osm.tag_power as osm_power_type, osm.tag_start_date as osm_tag_start_date,
+	osm.area as area_sqm, osm.located, osm.orientation, osm.tag_power as osm_power_type, osm.tag_start_date as osm_tag_start_date,
 	osm.modules as num_modules, -- osm.source_obj as osm_source_obj, osm.source_capacity as osm_source_capacity,
 	repd.dev_status_short, repd.operational, repd.old_repd_id,
 	osm.master_osm_id as osm_cluster_id, repd.master_repd_id as repd_cluster_id,
