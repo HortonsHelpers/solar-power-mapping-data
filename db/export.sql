@@ -29,12 +29,12 @@ CREATE TEMP TABLE "tmp_export_pvgeo" AS
 	osm.master_osm_id as osm_cluster_id, repd.master_repd_id as repd_cluster_id,
 	matches.match_rule
 	FROM (matches
-		FULL JOIN repd ON (matches.master_repd_id=repd.master_repd_id
+		FULL JOIN repd ON (matches.master_repd_id=repd.repd_id
 			AND repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Withdrawn',  'Planning Permission Expired')
 			AND match_rule NOT IN ('4', '4a'))   -- skip matches that were "schemes"
-		FULL JOIN osm ON (matches.master_osm_id=osm.master_osm_id
+		FULL JOIN osm ON (matches.master_osm_id=osm.osm_id
 			))
-	WHERE (dev_status_short IS NULL OR repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Withdrawn',  'Planning Permission Expired'))
+	WHERE ((osm_id IS NOT NULL) OR (repd.dev_status_short IS NULL) OR (repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Submitted', 'Application Withdrawn',  'Planning Permission Expired')))
 	ORDER BY repd.repd_id, osm.osm_id;
 
 \copy "tmp_export_pvgeo" TO '../data/exported/ukpvgeo_points_merged_deduped_osm-repd_all.csv' WITH DELIMITER ',' CSV HEADER;
