@@ -15,9 +15,9 @@ create table raw.osm (
   longitude      float,
   area           float,
   capacity       float,
-  modules        bigint,
+  modules        float,
   located        varchar(20),
-  orientation    integer,
+  orientation    float,
   plantref       varchar(20),
   tag_power      varchar(15),
   repd_id_str    varchar(20),
@@ -30,6 +30,15 @@ create table raw.osm (
 /* -----------------------------------------------------------------------------
 ** Edit table as necessary
 */
+
+-- coerce some float columns to int, since float res is excessive (but sometimes present in the input)
+
+alter table raw.osm
+  alter column modules
+    type bigint using round(modules)::bigint;
+alter table raw.osm
+  alter column orientation
+    type integer using round(orientation)::integer;
 
 -- Create geometry columns for geographical comparison/matching
 -- NB: Spatial Reference ID 4326 refers to WGS84
