@@ -23,6 +23,8 @@ required_columns = ['objtype',
                     'location',
                     'orientation',
                     'plantref',
+                    'source_capacity',
+                    'source_obj',
                     'tag_power',
                     'tag_repd:id',
                     'tag_start_date']

@@ -25,8 +25,9 @@ CREATE TEMP TABLE "tmp_export_pvgeo" AS
 	COALESCE(osm.longitude, repd.longitude) as longitude,
 	osm.area as area_sqm, osm.located, osm.orientation, osm.tag_power as osm_power_type, osm.tag_start_date as osm_tag_start_date,
 	osm.modules as num_modules, -- osm.source_obj as osm_source_obj, osm.source_capacity as osm_source_capacity,
-	repd.dev_status_short, repd.operational, repd.old_repd_id,
+	repd.dev_status_short as repd_status, repd.operational as repd_operational_date, repd.old_repd_id,
 	osm.master_osm_id as osm_cluster_id, repd.master_repd_id as repd_cluster_id,
+	source_capacity, source_obj,
 	matches.match_rule
 	FROM (matches
 		FULL JOIN repd ON (matches.master_repd_id=repd.repd_id
@@ -34,7 +35,7 @@ CREATE TEMP TABLE "tmp_export_pvgeo" AS
 			AND match_rule NOT IN ('4', '4a'))   -- skip matches that were "schemes"
 		FULL JOIN osm ON (matches.master_osm_id=osm.osm_id
 			))
-	WHERE ((osm_id IS NOT NULL) OR (repd.dev_status_short IS NULL) OR (repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Submitted', 'Application Withdrawn',  'Planning Permission Expired')))
+	WHERE ((osm_id IS NOT NULL) OR (repd.dev_status IS NULL) OR (repd.dev_status NOT IN ('Abandoned', 'Application Refused', 'Application Submitted', 'Application Withdrawn',  'Planning Permission Expired')))
 	ORDER BY repd.repd_id, osm.osm_id;
 
 \copy "tmp_export_pvgeo" TO '../data/exported/ukpvgeo_points_merged_deduped_osm-repd_all.csv' WITH DELIMITER ',' CSV HEADER;

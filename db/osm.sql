@@ -19,6 +19,8 @@ create table raw.osm (
   located        varchar(20),
   orientation    float,
   plantref       varchar(20),
+  source_capacity varchar(255),
+  source_obj     varchar(255),
   tag_power      varchar(15),
   repd_id_str    varchar(20),
   tag_start_date date,
