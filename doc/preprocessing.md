@@ -25,7 +25,8 @@ These were the manual edits that we needed to fix typos in the uncontrolled OSM 
 REPD
 ----
 
-No changes. Save as `data/raw/repd.csv`.
+1. Delete one unusual date/time cell: "00/01/1900"
+2. Save as `data/raw/repd.csv`.
 
 Machine vision dataset
 -----
