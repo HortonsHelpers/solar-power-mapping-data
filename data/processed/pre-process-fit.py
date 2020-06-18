@@ -12,7 +12,7 @@ fit_df = pd.read_csv(sys.stdin)
 # If the columns don't exist, make the column empty
 output_df = pd.DataFrame()
 required_columns = ['Extension (Y/N)',
-                    'Postcode',
+                    'PostCode',
                     'Technology',
                     'Installed capacity',
                     'Declared net capacity',
@@ -20,23 +20,26 @@ required_columns = ['Extension (Y/N)',
                     'Commissioning date',
                     'MCS issue date',
                     'Export status',
-                    'Tariff code',
-                    'Tariff description',
-                    'Installation type',
-                    'Country',
-                    'Local authority',
-                    'Government office region',
+                    'TariffCode',
+                    'Tariff Description',
+                    'Installation Type',
+                    'Installation Country',
+                    'Local Authority',
+                    'Government Office Region',
                     'Constituency',
                     'Accreditation Route',
                     'MPAN Prefix',
-                    'Community/school category',
-                    'LLSOA code']
+                    'Community school category',
+                    'LLSOA Code']
 
 for col in required_columns:
     try:
         output_df[col] = fit_df[col]
     except KeyError:
         output_df[col] = np.nan
+
+# Also at this point reduce to PV only (reduces data volumes)
+output_df = output_df[output_df['Technology']=='Photovoltaic']
 
 # Add index column
 fit_csv_str = output_df.to_csv(index=True)
