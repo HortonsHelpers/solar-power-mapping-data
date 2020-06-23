@@ -75,6 +75,9 @@ for col in required_columns:
     except KeyError:
         output_df[col] = np.nan
 
+# Also at this point reduce to PV only (reduces data volumes)
+output_df = output_df[output_df['Technology Type']=='Solar Photovoltaics']
+
 # Remove thousand-separator commas from number fields
 output_df['Storage Co-location REPD Ref ID'] = output_df['Storage Co-location REPD Ref ID'].map(lambda x: float(str(x).replace(',','')))
 output_df['X-coordinate'] = output_df['X-coordinate'].map(lambda x: float(str(x).replace(',','')))
