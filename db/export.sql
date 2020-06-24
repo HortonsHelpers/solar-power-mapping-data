@@ -39,7 +39,12 @@ CREATE TEMP TABLE "tmp_export_pvgeo" AS
 
 -- Delete irrelevant REPD entries (i.e. no OSM ID and status hints nonexistence).
 -- (Doing this in the main query was not working correctly for some reason.)
-DELETE FROM tmp_export_pvgeo WHERE (osm_id IS NULL) AND ((repd_status IS NULL) OR (repd_status IN ('Abandoned', 'Application Refused', 'Application Submitted', 'Application Withdrawn',  'Planning Permission Expired')));
+-- Note that some statuses e.g. 'Awaiting Construction', 'Under Construction' imply they are likely to exist soon.
+-- Here we try to strike a balance between being conservative (which means, ignore everything not flagged as operational)
+--    and accounting for the time-lag in the official data (which means, include items likely to come online very soon).
+DELETE FROM tmp_export_pvgeo WHERE (osm_id IS NULL) AND ((repd_status IS NULL) OR
+-- (repd_status IN ('Abandoned', 'Application Refused', 'Application Submitted', 'Application Withdrawn', 'Awaiting Construction', 'Planning Permission Expired')));
+ (NOT repd_status IN ('No Application Required', 'Operational', 'Under Construction')));
 
 
 -- Copy in, and redistribute, the REPD official capacities: if there are multiple clusters with the same REPD ID, split the capacity equally over them. Any item that's not the cluster representative should not list the repd capacity. This way, the REPD capacity column can be meaningfully summed.
