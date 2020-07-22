@@ -42,6 +42,9 @@ alter table raw.osm
   alter column orientation
     type integer using round(orientation)::integer;
 
+-- our input is using kW, convert to MW for coherence with use elsewhere in the db
+update raw.osm set capacity = 0.001 * capacity;
+
 -- Create geometry columns for geographical comparison/matching
 -- NB: Spatial Reference ID 4326 refers to WGS84
 
