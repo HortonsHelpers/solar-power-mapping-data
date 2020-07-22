@@ -28,13 +28,14 @@ create extension if not exists pg_trgm; -- trigram matching
 
 
 create temporary view repd_parts(repd_id1, repd_id2) as
-with temp(repd_id, location, reduced_site_name) as (
+with temp(repd_id, location, capacity, reduced_site_name) as (
   -- Within `site_name` remove the following strings:
   --   solar, Solar, park, Park, farm, Farm, resubmission, (resubmission), (Resubmission),
   --   extension, Extension, ()
   -- also remove ' - ' and reduce two consecutive spaces to one.
   select repd_id,
          location,
+         capacity,
          regexp_replace(
            regexp_replace(
            site_name,
@@ -48,7 +49,8 @@ with temp(repd_id, location, reduced_site_name) as (
     -- two sites are the same if they are close and have similar names; or if they
     -- are so close as to be clearly the same.
     where x.repd_id != y.repd_id
-      and ((x.location::geography <-> y.location::geography < :cluster_distance
+      and ((x.location::geography <-> y.location::geography <
+		area_adaptive_threshold(NULL, NULL, x.capacity, y.capacity)
             and similarity(x.reduced_site_name, y.reduced_site_name) >= :name_distance)
            or x.location::geography <-> y.location::geography < :identical_cluster_distance);
 

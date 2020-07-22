@@ -73,6 +73,9 @@ alter table raw.repd
     set data type int
       using cast (co_location_repd_id as integer);
 
+alter table raw.repd
+  alter column capacity
+    type float using (capacity)::float;
 
 -- Create geometry columns for geographical comparison/matching
 -- NB: Spatial Reference ID 4326 refers to WGS84

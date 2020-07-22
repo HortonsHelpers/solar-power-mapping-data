@@ -20,6 +20,8 @@ alter database "hut23-425" set datestyle to "DMY"; -- to match FIT and REPD data
 create schema if not exists raw;
 create extension if not exists postgis;
 
+\include area-adaptive-threshold.sql
+
 -- 1. Create tables and load data
 
 \include osm.sql

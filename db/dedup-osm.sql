@@ -55,21 +55,22 @@ select objtype,
 -- All pairs of objects that are within 300m of each other
 
 create temporary view osm_parts as
-with maybe_dupes(osm_id, location) as (
+with maybe_dupes(osm_id, location, area, capacity) as (
   -- ignore nodes, (various misspellings of) rooftop things,
   -- and cases where there is already a master_osm_id.
   -- NB. "X is not true" is true if X is false or X is null
-  select osm_id, location from osm
+  select osm_id, location, area, capacity from osm
   where
     objtype != 'node'
     and (located in ('roof', 'rood', 'roofq', 'rof', 'roofs')) is not true
     and master_osm_id is null
 )
--- find objects within 300 m of each other
+-- find objects within appropriate distance of each other
 select md1.osm_id as osm_id1, md2.osm_id as osm_id2
   from maybe_dupes as md1, maybe_dupes as md2
   where md1.osm_id != md2.osm_id
-        and md1.location::geography <-> md2.location::geography < :cluster_distance;
+        and md1.location::geography <-> md2.location::geography <
+		area_adaptive_threshold(md1.area, md2.area, md1.capacity, md2.capacity);
 
 -- osm_clusters(osm_id1, osm_id2)
 -- Objects that can be reached through a chain of connections
