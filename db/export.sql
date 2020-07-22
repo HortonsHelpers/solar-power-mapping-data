@@ -30,10 +30,10 @@ CREATE TEMP TABLE "tmp_export_pvgeo" AS
 	source_capacity, source_obj,
 	matches.match_rule
 	FROM (matches
-		FULL JOIN repd ON (matches.master_repd_id=repd.repd_id
+		FULL JOIN repd ON (matches.master_repd_id=repd.master_repd_id
 			AND repd.dev_status_short NOT IN ('Abandoned', 'Application Refused', 'Application Withdrawn',  'Planning Permission Expired')
 			AND match_rule NOT IN ('4', '4a'))   -- skip matches that were "schemes"
-		FULL JOIN osm ON (matches.master_osm_id=osm.osm_id
+		FULL JOIN osm ON (matches.master_osm_id=osm.master_osm_id
 			))
 	ORDER BY repd.repd_id, osm.osm_id;
 
@@ -49,9 +49,9 @@ DELETE FROM tmp_export_pvgeo WHERE (osm_id IS NULL) AND ((repd_status IS NULL) O
 
 -- Copy in, and redistribute, the REPD official capacities: if there are multiple clusters with the same REPD ID, split the capacity equally over them. Any item that's not the cluster representative should not list the repd capacity. This way, the REPD capacity column can be meaningfully summed.
 -- (Note: NOT across items with the same cluster ID. We do not want to spread the REPD capacities over every subelement, but when there are multiple "top-level" REPD matches we have no alternative but to spread the capacity to ensure we don't double-count the capacity.)
+UPDATE tmp_export_pvgeo SET "capacity_repd_MWp"=NULL WHERE NOT (osm_id=osm_cluster_id or osm_id is null);  -- Note, do not null out the REPD cap where not repd-cluster, since each REPD may have its own cap.
 UPDATE tmp_export_pvgeo SET "capacity_repd_MWp"=portioned FROM (
-	select repd_cluster_id, "capacity_repd_MWp", "capacity_repd_MWp"::float/COUNT(repd_cluster_id) as portioned from tmp_export_pvgeo where repd_cluster_id>0 and repd_id=repd_cluster_id group by repd_cluster_id, "capacity_repd_MWp") as portiontable WHERE tmp_export_pvgeo.repd_cluster_id=portiontable.repd_cluster_id and tmp_export_pvgeo.repd_cluster_id=tmp_export_pvgeo.repd_id;
-
+	select repd_cluster_id, "capacity_repd_MWp", "capacity_repd_MWp"::float/COUNT(repd_cluster_id) as portioned from tmp_export_pvgeo where repd_cluster_id>0 and repd_id=repd_cluster_id and (osm_id=osm_cluster_id or osm_id is null) group by repd_cluster_id, "capacity_repd_MWp") as portiontable WHERE tmp_export_pvgeo.repd_cluster_id=portiontable.repd_cluster_id and tmp_export_pvgeo.repd_cluster_id=tmp_export_pvgeo.repd_id and (osm_id=osm_cluster_id or osm_id is null);
 UPDATE tmp_export_pvgeo SET "capacity_repd_MWp"=NULL WHERE "capacity_repd_MWp"=0; -- proper NA entries.
 
 -- We do the same for duplicated OSM IDs too.
