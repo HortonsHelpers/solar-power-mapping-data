@@ -90,6 +90,7 @@ output_df['Post Code'] = output_df['Post Code'].map(lambda x: str(x).replace(' '
 output_df['FiT Tariff (p/kWh)'] = output_df['FiT Tariff (p/kWh)'].map(lambda x: float(x))
 
 # Remove line breaks from within certain fields
+output_df['Site Name'] = output_df['Site Name'].str.strip()
 output_df['Address'] = output_df['Address'].str.replace('\r\n', ', ')
 output_df['Appeal Reference'] = output_df['Appeal Reference'].map(lambda x: str(x).replace('\r\n', ''))
 
