@@ -16,6 +16,7 @@
 
 -- Preliminaries
 
+\set ON_ERROR_STOP on
 alter database "hut23-425" set datestyle to "DMY"; -- to match FIT and REPD data files
 create schema if not exists raw;
 create extension if not exists postgis;

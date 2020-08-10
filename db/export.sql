@@ -1,6 +1,6 @@
 /*
 ** Solar PV database export to CSV etc
-** April 2020
+** April--August 2020
 ** Author: Dan Stowell
 */
 
@@ -44,7 +44,7 @@ CREATE TEMP TABLE "tmp_export_pvgeo" AS
 --    and accounting for the time-lag in the official data (which means, include items likely to come online very soon).
 DELETE FROM tmp_export_pvgeo WHERE (osm_id IS NULL) AND ((repd_status IS NULL) OR
 -- (repd_status IN ('Abandoned', 'Application Refused', 'Application Submitted', 'Application Withdrawn', 'Awaiting Construction', 'Planning Permission Expired')));
- (NOT repd_status IN ('No Application Required', 'Operational', 'Under Construction')));
+ (NOT repd_status IN ('No Application Required', 'Operational', 'Under Construction', 'Awaiting Construction')));
 
 
 -- Copy in, and redistribute, the REPD official capacities: if there are multiple clusters with the same REPD ID, split the capacity equally over them. Any item that's not the cluster representative should not list the repd capacity. This way, the REPD capacity column can be meaningfully summed.
@@ -63,7 +63,8 @@ UPDATE tmp_export_pvgeo SET "capacity_osm_MWp"=portioned FROM (
 UPDATE tmp_export_pvgeo SET "capacity_osm_MWp"=NULL WHERE "capacity_osm_MWp"=0; -- proper NA entries.
 
 
-\copy "tmp_export_pvgeo" TO '../data/exported/ukpvgeo_points_merged_deduped_osm-repd_all.csv' WITH DELIMITER ',' CSV HEADER;
+\copy "tmp_export_pvgeo" TO '../data/exported/ukpvgeo_points.csv' WITH DELIMITER ',' CSV HEADER;
 
-\copy (SELECT * FROM tmp_export_pvgeo WHERE (osm_id = osm_cluster_id OR osm_cluster_id IS NULL OR osm_id IS NULL) AND (repd_id = repd_cluster_id OR repd_cluster_id IS NULL OR repd_id IS NULL)) TO '../data/exported/ukpvgeo_points_merged_deduped_osm-repd_clusters.csv' WITH DELIMITER ',' CSV HEADER;
+-- deactivated: cluster-only export.
+-- \copy (SELECT * FROM tmp_export_pvgeo WHERE (osm_id = osm_cluster_id OR osm_cluster_id IS NULL OR osm_id IS NULL) AND (repd_id = repd_cluster_id OR repd_cluster_id IS NULL OR repd_id IS NULL)) TO '../data/exported/ukpvgeo_points_merged_deduped_osm-repd_clusters.csv' WITH DELIMITER ',' CSV HEADER;
 
