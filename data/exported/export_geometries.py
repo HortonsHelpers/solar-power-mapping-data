@@ -10,12 +10,9 @@
 #    rm data/exported/osm_layers_merged.geojson
 #    for layer in points lines multilinestrings multipolygons other_relations;
 #       do echo "Extracting layer $layer";
-#          ogr2ogr -f GeoJSON -update -append -addfields data/exported/osm_layers_merged.geojson data/as_received/great-britain-200414.osm.pbf $layer -nln merged;
+#          ogr2ogr -f GeoJSON -update -append -addfields data/exported/osm_layers_merged.geojson data/exported/osm-gb-solaronly.osm.pbf $layer -nln merged;
 #    done
 
-
-# TODO include the OSM-to-GeoJSON conversion directly in this script?
-#   could use https://pyrosm.readthedocs.io/en/latest/
 
 
 import csv, os
@@ -24,8 +21,8 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, GeometryCollection
 
-pvexportfpath = 'data/exported/ukpvgeo_points_merged_deduped_osm-repd_all.csv'
-geometryfpath = 'data/exported/osm_layers_merged.geojson'
+pvexportfpath = 'ukpvgeo_points.csv'
+geometryfpath = '../as_received/osm-gb-solaronly.geojson'
 
 
 # load ukpvgeo_all.csv to df
@@ -46,6 +43,8 @@ for colname in ['other_tags', 'barrier', 'man_made', 'highway', 'landuse', 'buil
 
 # csv: check stats on osm_id, osm_way_id and their co-occurrence --- then merge the columns
 # cute row selection: gdf[~gdf.barrier.isna() & ~gdf.osm_id.isna()]
+print("GDF columns:")
+print(gdf.columns)
 assert ( gdf.osm_id.isna() &  gdf.osm_way_id.isna()).sum()==0, "Violated expectation that no GeoJSON object can have BOTH osm_id and osm_way_id"
 assert (~gdf.osm_id.isna() & ~gdf.osm_way_id.isna()).sum()==0, "Violated expectation that every GeoJSON object must have osm_id or osm_way_id"
 gdf.osm_id.update(gdf.osm_way_id) # coalesce in-place - this impl assumes no overlap
@@ -147,5 +146,5 @@ print("Finished filtering and merging CSV and GeoJSON data.")
 print(udf.describe(exclude=gpd.array.GeometryDtype))
 
 # write file out
-udf.to_file("data/exported/ukpvgeo_merged_deduped_osm-repd.geojson", driver='GeoJSON')
+udf.to_file("ukpvgeo_geometries.geojson", driver='GeoJSON')
 

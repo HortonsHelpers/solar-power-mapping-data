@@ -13,3 +13,6 @@ osm.csv: ../raw/osm.csv pre-process-osm.py
 
 machine_vision.csv: ../raw/machine_vision.geojson pre-process-mv.py
 	./pre-process-mv.py < $< > $@
+
+clean:
+	rm repd.csv fit.csv osm.csv machine_vision.csv

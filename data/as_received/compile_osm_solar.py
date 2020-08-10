@@ -3,7 +3,7 @@
 # Script to parse an OSM XML extract for solar PV data.
 # Dan Stowell, 2019-2020.
 
-import os, sys, csv, subprocess
+import os, sys, csv, subprocess, re
 from functools import reduce
 from xml import sax
 import numpy as np
@@ -51,6 +51,8 @@ def guess_kilowattage(anobj):
 		return 1.
 	else:
 		return anobj['calc_area'] * 0.15
+
+regex_numbers_semicolon_start = re.compile('^([0-9;]*).*')
 
 compasspoints = {
 	'N':     0,
@@ -245,10 +247,11 @@ class SolarXMLHandler(sax.handler.ContentHandler):
 						else:
 							ok = False
 					elif k in ['modules', 'generator:solar:modules', 'generator:modules']:
-						if v=='21https://help.openstreetmap.org/questions/47147/how-can-we-make-philadelphia-show-on-openstreetmaporg-at-zoom-levels-6-and-7':
-							v = '21' # fix a typo that warps my CSV...
 						if v=='unknown':
 							v=''
+						else:
+							# It's quite common (for some UI reason) to get typos in this field with characters pasted after the initial digits. We trim them off.
+							v = regex_numbers_semicolon_start.sub('\\1', v)
 						if ';' in v:
 							v = str(reduce(lambda a, b: a+b, map(int, v.split(';')))) # entries could be e.g. "7;5;2" and here we reduce them to a single integer sum
 						curitem['generator:solar:modules'] = v
@@ -551,12 +554,15 @@ def csvformatspecialfields(k, v):
 	return v
 
 try:
-	with open("compile_processed_PV_objects.csv", 'w', buffering=1) as outfp:
+	with open("osm.csv", 'w', buffering=1) as outfp:
 		outfp.write(",".join(allattribs) + "\n")
 		for obj in handler.objs:
 			outfp.write(",".join(map(str, [csvformatspecialfields(anattrib, obj.get(anattrib, '')) for anattrib in allattribs])) + "\n")
 except:
-	os.rename("compile_processed_PV_objects.csv", "compile_processed_PV_objects_ERROR.csv")
+	os.rename("osm.csv", "osm_ERROR.csv")
 	raise
 
+print("==========================================================")
+print("Finished creating initial OSM PV solar extract spreadsheet")
+print("==========================================================")
 
