@@ -28,6 +28,7 @@ from sklearn import linear_model
 
 # input paths:
 pvexportfpath = os.path.expanduser("ukpvgeo_points.csv")
+geometryfpath = '../as_received/osm-gb-solaronly.geojson'
 gspregionsfpath = os.path.expanduser("~/osm/solarsearch/gsp_regions/gsp_regions_20181031.geojson") # GSP regions from NG ESO
 lsoaregionsfpath = os.path.expanduser("~/osm/solarsearch/LSOAs/Lower_Layer_Super_Output_Areas_December_2011_Full_Clipped__Boundaries_in_England_and_Wales.shp")
 
@@ -60,6 +61,8 @@ df = gpd.GeoDataFrame(df, crs="epsg:4326", geometry=[Point(xy) for xy in zip(df.
 df = df.to_crs("EPSG:3857")
 df = df.drop(['longitude', 'latitude'], axis=1)
 
+gdf = gpd.read_file(geometryfpath)  # we're going to use this merely to check for containment. If an OSM item is contained entirely within another polygon, we shouldn't double-count its area.
+
 ##############################################################################
 # Preprocessing
 
@@ -85,6 +88,17 @@ def categorise_entry(row):
 		return "small"
 
 df['category'] = df.apply(categorise_entry, axis=1).astype(pd.CategoricalDtype(categories=["small", "medium", "large"], ordered=True))
+
+
+# find fully-contained OSM items, and flag them in a special column so that we don't use them in capacity estimates
+gdf = gdf[~gdf.osm_id.isna()]
+gdf_within = gpd.sjoin(gdf, gdf, how='inner', op="within")
+containified = gdf_within[(gdf_within['osm_id_left']!=gdf_within['osm_id_right'])]['osm_id_left'] # the left-hand item is the contained one.
+containified = pd.to_numeric(containified.values)
+df['area_is_contained'] = df['osm_id'].isin(containified)
+print("Found %i OSM items that are entirely-contained within others --- and hence we won't use them for inferring capacity from area" % df['area_is_contained'].sum())
+del gdf_within, containified
+
 
 def really_count_nonzero(ser):
     return ser.fillna(0, inplace=False).astype(bool).sum()
@@ -247,10 +261,10 @@ if True:
 print("")
 print("TOTAL MERGED CAPACITY ESTIMATES:")
 # merged2: +regress_area
-df['capacity_merged2_MWp'] = df['capacity_merged_MWp'].combine_first(df['area_sqm'] * area_regressor)
+df['capacity_merged2_MWp'] = df['capacity_merged_MWp'].combine_first(df['area_sqm'] * area_regressor * ~df['area_is_contained'])
 # merged3: missing values as 3 kW
 df['capacity_merged3_MWp'] = df['capacity_merged2_MWp']
-df.loc[df.capacity_merged2_MWp==0, 'capacity_merged3_MWp']=0.003
+df.loc[(df.capacity_merged2_MWp==0) & (~df['area_is_contained']), 'capacity_merged3_MWp']=0.003
 
 # explicitly tag the source of each capacity
 def calc_sourceof_capacity(row):
