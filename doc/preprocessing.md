@@ -14,12 +14,16 @@ FiT
 OSM (csv)
 ----
 
-Starting file: `compile_processed_PV_objects.csv`
+There are sometimes manual edits needed, to fix typos in the uncontrolled OSM source data. We have fixed many of them, and also caught them in the preprocessing of `compile_osm_solar.py`, but there could be others in future OSM data releases. Here are examples of edits we made:
 
-These were the manual edits that we needed to fix typos in the uncontrolled OSM source data. Note there could be others in future OSM data releases:
+1. Example edits:
 
-1. Changed "6modifiable areal unit problem" to 6 for id=6844767626 in generator:solar:modules column.
-2. Changed 14w to 14 for id=699666802 in generator:solar:modules column
+    2. Changed "14Synthetic"... to "14" for id=7784835486 in generator:solar:modules column.
+    2. Changed "8node 0" to "8" for id=7772459006 in generator:solar:modules column
+    2. Changed "36node 0" to "36" for id=7772459035 in generator:solar:modules column
+    2. Changed "17generator:method" to "17" for id=7791014395 in generator:solar:modules column
+    2. For object id=835531116, move "SE" from wrong column generator:solar:modules to orientation
+
 3. Save as `data/raw/osm.csv`
 
 REPD

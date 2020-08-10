@@ -2,3 +2,7 @@
 data/raw/fit.csv
 data/raw/osm.csv
 data/raw/repd.csv
+data/as_received/*.pbf
+data/as_received/*.xlsx
+data/as_received/*.geojson
+data/as_received/*.xml

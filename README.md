@@ -72,9 +72,7 @@ data tables. This also contains a column called `match_rule`, which refers to th
 
 ## Using this repo
 
-You should check this out using `git clone' (because we use git submodules to refer to an external script). The external script can then be added by running the command:
-
-`git submodule update --init --recursive`
+First, download (or clone) this repository.
 
 ### Install requirements
 
@@ -90,17 +88,27 @@ You should check this out using `git clone' (because we use git submodules to re
     - FiT reports: Navigate to [ofgem](https://www.ofgem.gov.uk/environmental-programmes/fit/contacts-guidance-and-resources/public-reports-and-data-fit/installation-reports) and click the link for the latest Installation Report (during the Turing project, 30 September 2019 was used), then download the main document AND subsidiary documents
     - REPD CSV file: [Download](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/879414/renewable-energy-planning-database-march-2020.csv) - this is always the most up to date version
     - Machine Vision dataset: supplied by Descartes labs (Oxford), not publicly available yet.
-2. Navigate to `submodules/compile_osm_solar` and edit the `osmsourcefpath` in `compile_osm_solar.py` so that the file path points to the OSM PBF file you downloaded. After installing the requirements in the submodule README, run `python compile_osm_solar.py`. One of the data files produced is a csv, which we use as source data. You can move this file to `data/as_received/osm.csv`
+2. Navigate to `data/as_received` and type `make` - this will convert the OSM download into some other formats ready for further processing.
 3. Carry out manual edits to the data files, as described in [doc/preprocessing](doc/preprocessing.md) and save them in `data/raw` under the names suggested by the doc, replacing the default dummy data files.
 4. Navigate to `data/processed` and type `make` - this will create versions of the data files ready for import to PostgreSQL
 
 ### Run the database creation and data matching
 
-4. Make sure you have PostgreSQL on your machine, then run the command: `createdb hut23-425 "Solar PV database matching"` - this creates the empty database.
-5. Navigate to `db` and run the command `psql -f make-database.sql hut23-425` - this populates the database (see [doc/database](doc/database.md)), carries out some de-duplication of the datasets and performs the matching procedure (see [doc/matching](doc/matching.md)). Note: this may take several minutes.
+5. Make sure you have PostgreSQL on your machine, then run the command: `createdb hut23-425 "Solar PV database matching"` - this creates the empty database.
+6. Navigate to `db` and run the command `psql -f make-database.sql hut23-425` - this populates the database (see [doc/database](doc/database.md)), carries out some de-duplication of the datasets and performs the matching procedure (see [doc/matching](doc/matching.md)). Note: this may take several minutes.
 
 Note that the above commands require you to have admin rights on your PostgreSQL server. On standard Debian-based machines you could prepend the commands with `sudo -u postgres`, or you could assign privileges to your own user account.
 
-## External collaborators guidance
+### Export data from the database
 
-From April 2020 this repo is no longer under active development, however a fork of the project is being created by [Open Climate Fix](https://github.com/openclimatefix) if you wish to open issues and pull requests there.
+The data tables in PostgreSQL can be used for further analysis. To make a data "snapshot" we export back out again:
+
+7. Navigate to `db` and run the command `psql -f export.sql hut23-425`
+8. Navigate to `data/exported` and run `make`.
+
+As a result of this, you should have a CSV and a GeoJSON file representing the harmonised data exported from the local database.
+
+You can also run the statistical analysis and plotting -- however, this relies on some external data files such as GSP regions and LSOA regions. The file `analyse_exported.py` makes use of some local file paths, 
+
+9. To do the additional plotting+stats, in `data/exported` run `make all`.
+
