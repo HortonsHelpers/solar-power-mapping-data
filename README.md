@@ -72,7 +72,7 @@ First, download (or clone) this repository.
     - REPD CSV file: [Download](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/879414/renewable-energy-planning-database-march-2020.csv) - this is always the most up to date version
     - Machine Vision dataset: supplied by Descartes labs (Oxford), not publicly available yet.
 2. Navigate to `data/raw` and type `make` - this will convert some of the downloads into other file formats ready for further processing.
-3. Carry out manual edits to the data files, as described in [doc/preprocessing](doc/preprocessing.md) and save them in `data/raw` under the names suggested by the doc, replacing the default dummy data files.
+3. Carry out manual edits to the data files, as described in [doc/preprocessing](doc/preprocessing.md) and save them in `data/raw` under the names suggested by the doc.
 4. Navigate to `data/processed` and type `make` - this will create versions of the data files ready for import to PostgreSQL
 
 ### Run the database creation and data matching

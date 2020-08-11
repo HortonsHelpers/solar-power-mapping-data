@@ -1,6 +1,6 @@
 # export data. You can export AND analyse by invoking "make all".
 
-ukpvgeo_geometries.geojson: ukpvgeo_points.csv ../as_received/osm-gb-solaronly.geojson
+ukpvgeo_geometries.geojson: ukpvgeo_points.csv ../raw/osm-gb-solaronly.geojson
 	python3 export_geometries.py
 
 all: ukpvgeo_geometries.geojson plot_analyse_exported.pdf
