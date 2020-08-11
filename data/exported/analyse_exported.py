@@ -28,9 +28,9 @@ from sklearn import linear_model
 
 # input paths:
 pvexportfpath = os.path.expanduser("ukpvgeo_points.csv")
-geometryfpath = '../as_received/osm-gb-solaronly.geojson'
-gspregionsfpath = os.path.expanduser("~/osm/solarsearch/gsp_regions/gsp_regions_20181031.geojson") # GSP regions from NG ESO
-lsoaregionsfpath = os.path.expanduser("~/osm/solarsearch/LSOAs/Lower_Layer_Super_Output_Areas_December_2011_Full_Clipped__Boundaries_in_England_and_Wales.shp")
+geometryfpath = '../raw/osm-gb-solaronly.geojson'
+gspregionsfpath = os.path.expanduser("../other/gsp_regions_20181031.geojson") # GSP regions from NG ESO
+lsoaregionsfpath = os.path.expanduser("../other/Lower_Layer_Super_Output_Areas_December_2011_Full_Clipped__Boundaries_in_England_and_Wales.shp")
 
 # out paths:
 gsp_est_outfpath  = os.path.expanduser("ukpvgeo_subtotals_gsp_capacity.csv")

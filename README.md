@@ -88,7 +88,7 @@ First, download (or clone) this repository.
     - FiT reports: Navigate to [ofgem](https://www.ofgem.gov.uk/environmental-programmes/fit/contacts-guidance-and-resources/public-reports-and-data-fit/installation-reports) and click the link for the latest Installation Report (during the Turing project, 30 September 2019 was used), then download the main document AND subsidiary documents
     - REPD CSV file: [Download](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/879414/renewable-energy-planning-database-march-2020.csv) - this is always the most up to date version
     - Machine Vision dataset: supplied by Descartes labs (Oxford), not publicly available yet.
-2. Navigate to `data/as_received` and type `make` - this will convert the OSM download into some other formats ready for further processing.
+2. Navigate to `data/raw` and type `make` - this will convert some of the downloads into other file formats ready for further processing.
 3. Carry out manual edits to the data files, as described in [doc/preprocessing](doc/preprocessing.md) and save them in `data/raw` under the names suggested by the doc, replacing the default dummy data files.
 4. Navigate to `data/processed` and type `make` - this will create versions of the data files ready for import to PostgreSQL
 

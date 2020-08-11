@@ -4,7 +4,7 @@ all: osm-gb-solaronly.osm.pbf osm-gb-solaronly.xml osm-gb-solaronly.geojson osm.
 
 
 # basic OSM solarfiltering -- reduces 1.5 GB to approx 2 MB
-osm-gb-solaronly.osm.pbf: great-britain-latest.osm.pbf
+osm-gb-solaronly.osm.pbf: ../as_received/great-britain-latest.osm.pbf
 	osmium tags-filter $< generator:method=photovoltaic plant:method=photovoltaic plant:source=solar -o $@
 
 # format-shifting OSM->XML
@@ -19,11 +19,10 @@ osm-gb-solaronly.geojson: osm-gb-solaronly.osm.pbf
 	ogr2ogr -f GeoJSON -update -append -addfields $@ $< multipolygons    -nln merged
 	ogr2ogr -f GeoJSON -update -append -addfields $@ $< other_relations  -nln merged
 
-# invoke compile py
 osm.csv: osm-gb-solaronly.xml
 	python3 compile_osm_solar.py
 
-fit.csv: installation_report_apr2020_part_1.xlsx
+fit.csv: ../as_received/installation_report_apr2020_part_1.xlsx
 	python3 convert_fit_excel_to_csv.py
 
 clean:

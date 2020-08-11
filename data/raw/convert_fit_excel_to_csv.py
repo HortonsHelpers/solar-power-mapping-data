@@ -16,7 +16,7 @@ def formatcell(item):
 	return str(item.internal_value)
 
 with open("fit.csv", "wt") as outfp:
-	for infname in sorted(glob.glob("installation_report_*_part_*.xlsx")):
+	for infname in sorted(glob.glob("../as_received/installation_report_*_part_*.xlsx")):
 		print(infname)
 		wb = load_workbook(filename=infname, read_only=True)
 

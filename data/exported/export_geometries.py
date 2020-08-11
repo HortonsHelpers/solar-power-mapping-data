@@ -22,7 +22,7 @@ import geopandas as gpd
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, GeometryCollection
 
 pvexportfpath = 'ukpvgeo_points.csv'
-geometryfpath = '../as_received/osm-gb-solaronly.geojson'
+geometryfpath = '../raw/osm-gb-solaronly.geojson'
 
 
 # load ukpvgeo_all.csv to df
