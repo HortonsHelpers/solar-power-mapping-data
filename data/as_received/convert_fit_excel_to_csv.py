@@ -5,7 +5,6 @@ from openpyxl import load_workbook
 # tested using openpyxl 3.0.3 on python 3.7.5, ubuntu 18.04
 
 # TODO this script should be merged in with data/processed/pre-process-fit.py
-#  and should not be hanging around in the root directory 
 
 headercols = None
 rowswritten = 0
@@ -16,8 +15,8 @@ def formatcell(item):
 		return ""
 	return str(item.internal_value)
 
-with open("data/raw/fit.csv", "wt") as outfp:
-	for infname in sorted(glob.glob("data/as_received/installation_report_*_part_*.xlsx")):
+with open("fit.csv", "wt") as outfp:
+	for infname in sorted(glob.glob("installation_report_*_part_*.xlsx")):
 		print(infname)
 		wb = load_workbook(filename=infname, read_only=True)
 

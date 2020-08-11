@@ -6,10 +6,7 @@ These are the manual data transformations made to get the files in `data/raw` fr
 FiT
 ----
 
-1. Combine the 3 spreadsheets into one
-2. Remove rows above header
-3. Convert to csv
-4. Save as `data/raw/fit.csv`
+No transormation needed -- running `make` in the `data/raw` folder should be sufficient to combine the 3 Excel spreadsheets into one and convert to CSV, yielding `fit.csv`.
 
 OSM (csv)
 ----

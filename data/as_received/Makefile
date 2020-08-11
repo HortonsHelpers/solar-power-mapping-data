@@ -1,6 +1,6 @@
-# Preprocess OSM extract into filtered subsets
+# Preprocess OSM extract into filtered subsets; and compile FiT Excels into csv.
 
-all: osm-gb-solaronly.osm.pbf osm-gb-solaronly.xml osm-gb-solaronly.geojson osm.csv
+all: osm-gb-solaronly.osm.pbf osm-gb-solaronly.xml osm-gb-solaronly.geojson osm.csv fit.csv
 
 
 # basic OSM solarfiltering -- reduces 1.5 GB to approx 2 MB
@@ -23,6 +23,9 @@ osm-gb-solaronly.geojson: osm-gb-solaronly.osm.pbf
 osm.csv: osm-gb-solaronly.xml
 	python3 compile_osm_solar.py
 
+fit.csv: installation_report_apr2020_part_1.xlsx
+	python3 convert_fit_excel_to_csv.py
+
 clean:
-	rm osm.csv osm-gb-solaronly.osm.pbf osm-gb-solaronly.xml osm-gb-solaronly.geojson
+	rm osm.csv fit.csv osm-gb-solaronly.osm.pbf osm-gb-solaronly.xml osm-gb-solaronly.geojson
 
