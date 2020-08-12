@@ -59,7 +59,7 @@ First, download (or clone) this repository.
 
 ### Install requirements
 
-1. Install [PostgreSQL](https://www.postgresql.org/download/)
+1. Install [PostgreSQL](https://www.postgresql.org/download/) with [PostGIS](http://postgis.net/install/)
 2. Install Python 3 (version 3.7 or later) and `pip`
 3. Run `pip install -r requirements.txt`
 4. Install [Osmium](https://osmcode.org/osmium-tool/)
@@ -72,6 +72,7 @@ First, download (or clone) this repository.
     - REPD CSV file: [Download](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/879414/renewable-energy-planning-database-march-2020.csv) - this is always the most up to date version
     - Machine Vision dataset: supplied by Descartes labs (Oxford), not publicly available yet.
 2. Navigate to `data/raw` and type `make` - this will convert some of the downloads into other file formats ready for further processing.
+    - Note that the OpenStreetMap data will have been processed into a file `osm.csv`. If you do not need to do any merging/clustering, you could use this file directly, as a simplified extract of OSM solar PV data.
 3. Carry out manual edits to the data files, as described in [doc/preprocessing](doc/preprocessing.md) and save them in `data/raw` under the names suggested by the doc.
 4. Navigate to `data/processed` and type `make` - this will create versions of the data files ready for import to PostgreSQL
 

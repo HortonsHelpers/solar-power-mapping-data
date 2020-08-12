@@ -15,11 +15,11 @@ There are sometimes manual edits needed, to fix typos in the uncontrolled OSM so
 
 1. Example edits:
 
-    2. Changed "14Synthetic"... to "14" for id=7784835486 in generator:solar:modules column.
-    2. Changed "8node 0" to "8" for id=7772459006 in generator:solar:modules column
-    2. Changed "36node 0" to "36" for id=7772459035 in generator:solar:modules column
-    2. Changed "17generator:method" to "17" for id=7791014395 in generator:solar:modules column
-    2. For object id=835531116, move "SE" from wrong column generator:solar:modules to orientation
+    - Changed "14Synthetic"... to "14" for id=7784835486 in generator:solar:modules column.
+    - Changed "8node 0" to "8" for id=7772459006 in generator:solar:modules column
+    - Changed "36node 0" to "36" for id=7772459035 in generator:solar:modules column
+    - Changed "17generator:method" to "17" for id=7791014395 in generator:solar:modules column
+    - For object id=835531116, move "SE" from wrong column generator:solar:modules to orientation
 
 3. Save as `data/raw/osm.csv`
 
