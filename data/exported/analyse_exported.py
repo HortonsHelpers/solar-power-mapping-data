@@ -137,7 +137,8 @@ plt.close()
 
 # orientation (7800) - also plot a circular histogram of these
 fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(projection='polar'))
-sns.distplot(df['orientation'].astype('float') * np.pi / 180, norm_hist=False, kde=False)
+anglebins = np.arange(0.03125 * np.pi, 2 * np.pi + 1e-3, 0.0625 * np.pi)
+sns.distplot(df['orientation'].astype('float') * np.pi / 180, bins=anglebins, norm_hist=False, kde=False)
 ax.set_theta_zero_location('N')
 plt.title("Distribution of PV installation orientations (%i tagged)" % (1-df['orientation'].isna()).sum())
 pdf.savefig(fig)
