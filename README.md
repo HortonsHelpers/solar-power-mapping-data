@@ -73,7 +73,7 @@ First, download (or clone) this repository.
     - Machine Vision dataset: supplied by Descartes labs (Oxford), not publicly available yet.
 2. Navigate to `data/raw` and type `make` - this will convert some of the downloads into other file formats ready for further processing.
     - Note that the OpenStreetMap data will have been processed into a file `osm.csv`. If you do not need to do any merging/clustering, you could use this file directly, as a simplified extract of OSM solar PV data.
-3. Carry out manual edits to the data files, as described in [doc/preprocessing](doc/preprocessing.md) and save them in `data/raw` under the names suggested by the doc.
+3. Carry out manual edits to the data files, as described in [doc/preprocessing](doc/preprocessing.md), editing the file copies in `data/raw` under the names suggested by the doc.
 4. Navigate to `data/processed` and type `make` - this will create versions of the data files ready for import to PostgreSQL
 
 ### Run the database creation and data matching
@@ -88,11 +88,8 @@ Note that the above commands require you to have admin rights on your PostgreSQL
 The data tables in PostgreSQL can be used for further analysis. To make a data "snapshot" we export back out again:
 
 7. Navigate to `db` and run the command `psql -f export.sql hut23-425`
-8. Navigate to `data/exported` and run `make`.
+8. Navigate to `data/exported` and run `make`. Note: this may take several minutes.
+
+    You can also run the statistical analysis and plotting -- however, this relies on some external data files such as GSP regions and LSOA regions. The file `analyse_exported.py` makes use of some local file paths (in `data/other`, not in the public source code). To do the additional plotting+stats, in `data/exported` run `make all`.
 
 As a result of this, you should have a CSV and a GeoJSON file representing the harmonised data exported from the local database.
-
-You can also run the statistical analysis and plotting -- however, this relies on some external data files such as GSP regions and LSOA regions. The file `analyse_exported.py` makes use of some local file paths, 
-
-9. To do the additional plotting+stats, in `data/exported` run `make all`.
-
