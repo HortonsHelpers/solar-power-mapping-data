@@ -389,17 +389,20 @@ def statstr(df, col):
 
 def plot_choropleth(dataframe_per_region, col, vmax, plottitle, cmap='hot', legend=True, vmin=0, show_statstr=True):
 	fig, ax = plt.subplots(figsize=(8, 10))
-
-	dataframe_per_region.plot(column=col, ax=ax, linewidth=0.01, edgecolor=(0.7, 0.7, 0.7), vmin=vmin, vmax=vmax, cmap=cmap, legend=legend)
-	plt.title(plottitle)
-	if show_statstr:
-		plt.annotate(statstr(dataframe_per_region, col), xy=(0.7, 0.9), xycoords='axes fraction', color=(0.5, 0.5, 0.5), fontsize=8)
-	plt.xlim(xmin=-0.75e6)
-	plt.ylim(ymax=8.0e6)
-	plt.xticks([])
-	plt.yticks([])
+	plot_choropleth_onax(ax, dataframe_per_region, col, vmax, plottitle, cmap, legend, vmin, show_statstr)
 	pdf.savefig(fig)
 	plt.close()
+
+def plot_choropleth_onax(ax, dataframe_per_region, col, vmax, plottitle, cmap='hot', legend=True, vmin=0, show_statstr=True):
+	dataframe_per_region.plot(column=col, ax=ax, linewidth=0.01, edgecolor=(0.7, 0.7, 0.7), vmin=vmin, vmax=vmax, cmap=cmap, legend=legend)
+	if plottitle:
+		ax.set_title(plottitle)
+	if show_statstr:
+		plt.annotate(statstr(dataframe_per_region, col), xy=(0.7, 0.9), xycoords='axes fraction', color=(0.5, 0.5, 0.5), fontsize=8)
+	ax.set_xlim(left=-0.75e6)
+	ax.set_ylim(top=8.0e6)
+	ax.set_xticks([])
+	ax.set_yticks([])
 
 if False:
 	# just the regions
@@ -584,6 +587,57 @@ if got_sheff:
 
 		for col, col_lbl, cola, colb in diffchoros:
 			plot_choropleth(pergsp, col, vmax, "Capacity in each GSP region (MWp): %s" % col_lbl, vmin=-vmax, cmap="RdBu", show_statstr=False)
+
+##############################################################################
+# Next: capacity choropleths, for a selection of high-contributing users
+
+# NOTE: according to OSM's GDPR policy we must not publish user ids.
+#  That's why we use a list of users which is not stored in github,
+#  and load their associations from the input file rather than our output.
+#  Then we anonymise them to simple transitory integer values.
+
+if True:
+	with open('users_to_plot.csv', 'rt') as fp:
+		rdr = csv.reader(row for row in fp if not row.startswith('#'))
+		users_to_plot = [line[0].strip() for line in rdr if len(line)]
+
+	rawosmfpath = '../raw/osm.csv'
+
+	df_userids = pd.read_csv(rawosmfpath, usecols=['objtype', 'id', 'user'], dtype={'id':inttype}).rename(columns={'objtype':'osm_objtype', 'id':'osm_id'})
+	users_to_plot_lookup = {u:k for k,u in enumerate(users_to_plot)}
+	df_userids['user'] = df_userids['user'].map(users_to_plot_lookup).astype(inttype)
+	df = df.merge(df_userids, how='left', on=['osm_objtype', 'osm_id'])
+	num_persons = len(users_to_plot)
+
+	# TMP  [(personindex, sum(df[df['user']==personindex]['capacity_merged3_MWp'])) for personindex in range(len(users_to_plot))]
+
+	# num items per person
+	fig, axes = plt.subplots(1, num_persons, figsize=(8 * num_persons, 10))
+	for personindex, ax in enumerate(axes):
+		piv_count_gsp_forthisperson = pd.pivot_table(df[df['user']==personindex], values='geometry', index='RegionID', aggfunc=really_count_nonzero).rename(columns={'geometry':'num'})
+		pergsp_forthisperson = gspdf.merge(piv_count_gsp_forthisperson, how='left', on='RegionID').sort_values("RegionID")
+		pergsp_forthisperson['num'].fillna(0, inplace=True)
+		plot_choropleth_onax(ax, pergsp_forthisperson, "num", None, cmap='copper', plottitle=None, show_statstr=False)
+	pdf.savefig(fig)
+	plt.close()
+
+	# capacity per person
+	col = 'capacity_merged3_MWp'
+	fig, axes = plt.subplots(1, num_persons, figsize=(8 * num_persons, 10))
+	for personindex, ax in enumerate(axes):
+		#print(f"  Plotting for user #{personindex}")
+		piv_mw_gsp_forthisperson = pd.pivot_table(df[df['user']==personindex], values=col, index='RegionID', aggfunc='sum')
+		pergsp_forthisperson = gspdf.merge(piv_mw_gsp_forthisperson, how='left', on='RegionID').sort_values("RegionID")
+		pergsp_forthisperson[col].fillna(0, inplace=True)
+		vmax = pergsp_forthisperson[col].max()
+		#print("     peak value: %f" % vmax)
+		plottitle = "Capacity in each GSP region (MWp) edited by user #%i" % (personindex+1)
+		plot_choropleth_onax(ax, pergsp_forthisperson, col, np.ceil(vmax/10)*10., plottitle=None, show_statstr=False)
+
+	pdf.savefig(fig)
+	plt.close()
+
+
 
 
 ##############################################################################
