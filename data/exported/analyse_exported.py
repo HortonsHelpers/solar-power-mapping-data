@@ -64,6 +64,28 @@ df = df.drop(['longitude', 'latitude'], axis=1)
 gdf = gpd.read_file(geometryfpath)  # we're going to use this merely to check for containment. If an OSM item is contained entirely within another polygon, we shouldn't double-count its area.
 
 ##############################################################################
+# Simple subtotals
+
+print("ukpvgeo_points.csv file contains %i data rows." % len(df))
+print("Simple subtotals, number of installations/clusters:")
+
+asubset = df[df['osm_id']>0]
+numinst = len(asubset[['osm_objtype', 'osm_id']].drop_duplicates())
+numclus = len(asubset[['osm_cluster_id']].drop_duplicates())
+print(f"From OSM:   {numinst} / {numclus}")
+
+asubset = df[df['repd_id']>0]
+numinst = len(asubset[['repd_id']].drop_duplicates())
+numclus = len(asubset[['repd_cluster_id']].drop_duplicates())
+print(f"From REPD:  {numinst} / {numclus}")
+
+asubset = df
+numinst = len(asubset[['osm_objtype', 'osm_id', 'repd_id']].drop_duplicates())
+numclus = len(asubset[['osm_cluster_id', 'repd_id']].drop_duplicates())
+print(f"Harmonised: {numinst} / {numclus}")
+print()
+
+##############################################################################
 # Preprocessing
 
 df['centroid'] = df.centroid
@@ -98,7 +120,6 @@ containified = pd.to_numeric(containified.values)
 df['area_is_contained'] = df['osm_id'].isin(containified)
 print("Found %i OSM items that are entirely-contained within others --- and hence we won't use them for inferring capacity from area" % df['area_is_contained'].sum())
 del gdf_within, containified
-
 
 def really_count_nonzero(ser):
     return ser.fillna(0, inplace=False).astype(bool).sum()
@@ -534,8 +555,7 @@ if got_sheff:
 		  )
 	ax.set_xlabel("DC capacity from Sheffield/SolarMedia (MW)")
 	ax.set_ylabel("Capacity from OSM+REPD+inferred (MWp)")
-	ax.set_title("Comparison of capacity subtotals per GSP region (plotted: %i)" %
-		     sum((gspcorreltab["dc_capacity"]>0) & gspcorreltab["capacity_merged3_MWp"]))
+	ax.set_title("Comparison of capacity subtotals per GSP region")
 	ax.set_aspect(1)
 	ax.set_xlim(-10, 500)
 	ax.set_ylim(-10, 500)
@@ -560,8 +580,7 @@ if got_sheff:
 		  )
 	ax.set_xlabel("DC capacity from Sheffield/SolarMedia (MW)")
 	ax.set_ylabel("Capacity from OSM+REPD+inferred (MWp)")
-	ax.set_title("Comparison of capacity subtotals per LSOA region (plotted: %i)" %
-		     sum((lsoacorreltab["dc_capacity"]>0) & lsoacorreltab["capacity_merged3_MWp"]))
+	ax.set_title("Comparison of capacity subtotals per LSOA region")
 	ax.set_aspect(1)
 	ax.set_xlim(-2, 80)
 	ax.set_ylim(-2, 80)
