@@ -11,9 +11,7 @@ rowswritten = 0
 
 def formatcell(item):
 	"Appropriate conversions for CSV output"
-	if item.value is None:
-		return ""
-	return str(item.internal_value)
+	return "" if item.value is None else str(item.internal_value)
 
 with open("fit.csv", "wt") as outfp:
 	for infname in sorted(glob.glob("../as_received/installation_report_*_part_*.xlsx")):

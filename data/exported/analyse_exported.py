@@ -39,8 +39,8 @@ lsoa_est_outfpath = os.path.expanduser("ukpvgeo_subtotals_lsoa_capacity.csv")
 # if you have access to the Sheffield Solar data for validation, activate this and set the paths appropriately:
 got_sheff = True
 auxdocs_gdrive_path = os.path.expanduser("~/Documents/turing/turing-climate-call/Turing_OCF_OSM_gdrive/")
-sheff_cap_by_gsp_path  = "%s/PV_capacity_by_GSP_and_LLSOA/capacity_by_llsoa_and_gsp_20200617T165804/20200617T165804_capacity_by_GSP_region.csv" % auxdocs_gdrive_path
-sheff_cap_by_lsoa_path = "%s/PV_capacity_by_GSP_and_LLSOA/capacity_by_llsoa_and_gsp_20200617T165804/20200617T165804_capacity_by_llsoa.csv" % auxdocs_gdrive_path
+sheff_cap_by_gsp_path = f"{auxdocs_gdrive_path}/PV_capacity_by_GSP_and_LLSOA/capacity_by_llsoa_and_gsp_20200617T165804/20200617T165804_capacity_by_GSP_region.csv"
+sheff_cap_by_lsoa_path = f"{auxdocs_gdrive_path}/PV_capacity_by_GSP_and_LLSOA/capacity_by_llsoa_and_gsp_20200617T165804/20200617T165804_capacity_by_llsoa.csv"
 
 # other:
 inttype = pd.Int64Dtype()
@@ -137,7 +137,7 @@ def format_num_entries(colname, df):
 print("")
 print("METADATA STATS:")
 for colname in ['capacity_merged_MWp', 'orientation', 'located', 'num_modules']:
-	print("%s, num entries: %s" % (colname, format_num_entries(colname, df)))
+	print(f"{colname}, num entries: {format_num_entries(colname, df)}")
 print("area_sqm, num entries: %i (==%.1f %% of rows)" % ((df['area_sqm'] > 0).sum(),
 		100 * (df['area_sqm']>0).sum()/len(df)))
 
@@ -198,82 +198,56 @@ plt.close()
 print("")
 print("CAPACITY LINEAR REGRESSIONS:")
 
-#for whichcat in df['category'].values.categories:
-if True:
+fig, ax = plt.subplots(figsize=(10, 6))
 
-	fig, ax = plt.subplots(figsize=(10, 6))
+whichcat = 'all'
+subset = df[(df.area_sqm>0) & (df.capacity_merged_MWp>0)]
 
-	whichcat = 'all'
-	subset = df[(df.area_sqm>0) & (df.capacity_merged_MWp>0)]
+print("   Num items of type '%s' with area+capacity to regress: %i" % (whichcat, len(subset)))
 
-	if False: # enable this to grab a specific subset
-		whichcat = 'small'
-		subset = subset[subset.category==whichcat]
+xvals = subset['area_sqm']
+yvals = subset['capacity_merged_MWp']
+regr = linear_model.LinearRegression(fit_intercept=False) # force line to pass through zero
+data_toregress = np.array(xvals).reshape(-1, 1)
+regr.fit(data_toregress, yvals)
+linregpredict = regr.predict(data_toregress)
+rsq = regr.score(data_toregress, yvals)
 
-	print("   Num items of type '%s' with area+capacity to regress: %i" % (whichcat, len(subset)))
+print("     Slope: %.2f W / sq m     R^2: %.3f" % (regr.coef_[0] * 1000000, rsq))
 
-	xvals = subset['area_sqm']
-	yvals = subset['capacity_merged_MWp']
-	regr = linear_model.LinearRegression(fit_intercept=False) # force line to pass through zero
-	data_toregress = np.array(xvals).reshape(-1, 1)
-	regr.fit(data_toregress, yvals)
-	linregpredict = regr.predict(data_toregress)
-	rsq = regr.score(data_toregress, yvals)
+plt.plot(sorted(xvals * 1e-6), sorted(linregpredict), 'b-', alpha=0.4)
+plt.scatter(xvals * 1e-6, yvals, marker='+', alpha=0.4)
+plt.annotate("Slope: %.2f W / sq m\nR^2: %.3f" % (regr.coef_[0] * 1000000, rsq), xy=(0.8, 0.1), xycoords='axes fraction', color=(0.5, 0.5, 0.5))
 
-	print("     Slope: %.2f W / sq m     R^2: %.3f" % (regr.coef_[0] * 1000000, rsq))
+#plt.xlim(1, 1000)
+plt.ylabel('Capacity (MWp)')
+plt.xlabel('Calculated area of PV object (sq km)')
+plt.title("Area vs capacity in OSM&REPD (UK)")
 
-	plt.plot(sorted(xvals * 1e-6), sorted(linregpredict), 'b-', alpha=0.4)
-	plt.scatter(xvals * 1e-6, yvals, marker='+', alpha=0.4)
-	plt.annotate("Slope: %.2f W / sq m\nR^2: %.3f" % (regr.coef_[0] * 1000000, rsq), xy=(0.8, 0.1), xycoords='axes fraction', color=(0.5, 0.5, 0.5))
-
-	#plt.xlim(1, 1000)
-	plt.ylabel('Capacity (MWp)')
-	plt.xlabel('Calculated area of PV object (sq km)')
-	plt.title("Area vs capacity in OSM&REPD (UK)")
-
-	pdf.savefig(fig)
-	plt.close()
+pdf.savefig(fig)
+plt.close()
 
 area_regressor = regr.coef_[0]
 
-#for whichcat in df['category'].values.categories:
-if True:
+fig, ax = plt.subplots(figsize=(10, 6))
 
-	fig, ax = plt.subplots(figsize=(10, 6))
+whichcat = 'all'
+subset = df[(df.num_modules>0) & (df.capacity_merged_MWp>0)]
 
-	whichcat = 'all'
-	subset = df[(df.num_modules>0) & (df.capacity_merged_MWp>0)]
+whichcat = 'small'
+subset = subset[subset.category==whichcat]
 
-	if True: # enable this to grab a specific subset
-		whichcat = 'small'
-		subset = subset[subset.category==whichcat]
+print("   Num items of type '%s' with nummod+capacity to regress: %i" % (whichcat, len(subset)))
 
-	print("   Num items of type '%s' with nummod+capacity to regress: %i" % (whichcat, len(subset)))
+xvals = subset['num_modules']
+yvals = subset['capacity_merged_MWp']
+regr = linear_model.LinearRegression(fit_intercept=False) # force line to pass through zero
+data_toregress = np.array(xvals).reshape(-1, 1)
+regr.fit(data_toregress, yvals)
+linregpredict = regr.predict(data_toregress)
+rsq = regr.score(data_toregress, yvals)
 
-	xvals = subset['num_modules']
-	yvals = subset['capacity_merged_MWp']
-	regr = linear_model.LinearRegression(fit_intercept=False) # force line to pass through zero
-	data_toregress = np.array(xvals).reshape(-1, 1)
-	regr.fit(data_toregress, yvals)
-	linregpredict = regr.predict(data_toregress)
-	rsq = regr.score(data_toregress, yvals)
-
-	print("     Slope: %.2f W / unit     R^2: %.3f" % (regr.coef_[0] * 1000000, rsq))
-
-	if False:
-		plt.plot(sorted(xvals), sorted(linregpredict), 'b-', alpha=0.4)
-		plt.scatter(xvals, yvals, marker='+', alpha=0.4)
-		plt.annotate("Slope: %.2f W / unit\nR^2: %.3f" % (regr.coef_[0] * 1000000, rsq), xy=(0.8, 0.1), xycoords='axes fraction', color=(0.5, 0.5, 0.5))
-
-		#plt.xlim(1, 1000)
-		plt.ylabel('Capacity (MWp)')
-		plt.xlabel('num_modules of PV object')
-		plt.title("num_modules vs capacity in OSM&REPD (UK) (type: %s)" % whichcat)
-
-		pdf.savefig(fig)
-		plt.close()
-
-
+print("     Slope: %.2f W / unit     R^2: %.3f" % (regr.coef_[0] * 1000000, rsq))
 
 ##############################################################################
 # Our estimate of UK's MW capacity - for each of the 3 types, and the total
@@ -294,9 +268,9 @@ def calc_sourceof_capacity(row):
 		return 'osm'
 	elif row['capacity_repd_MWp']>0:
 		return 'repd'
-	elif (row['capacity_merged2_MWp']>0 and not row['capacity_merged_MWp']>0):
+	elif row['capacity_merged2_MWp'] > 0 and row['capacity_merged_MWp'] <= 0:
 		return "area_regress"
-	elif (row['capacity_merged3_MWp']>0 and not row['capacity_merged2_MWp']>0):
+	elif row['capacity_merged3_MWp'] > 0 and row['capacity_merged2_MWp'] <= 0:
 		return "point"
 	else:
 		return "HUH"
@@ -359,35 +333,34 @@ plt.close()
 
 
 
-if True:
-	# Let's do a log-log plot of the long-tail distribution:
-	# rank position on the x-axis, value on the y-axis, sourceof as the category
-	loglogvariable = 'capacity_merged2_MWp'
-	loglogcols = ["osm", "repd"] #"area_regress"#, "point"
-	loglogpalette = ['b', 'r'] #'y'#, 'k'
-	dflt = df[[loglogvariable, 'sourceof_capacity']].sort_values(inplace=False, axis=0, by=loglogvariable, ascending=False)
-	dflt = dflt[dflt['sourceof_capacity'].isin(loglogcols)]
-	dflt['rank'] = dflt[loglogvariable].rank(ascending=False)
-	# Now, to reduce plot kb bulk, we aggregate the data by counting
-	gcount = dflt.groupby([loglogvariable, 'sourceof_capacity', 'rank'],
-			observed=True).agg(count=('rank', 'count'))
-	gcount.reset_index(inplace=True)
-	g = sns.relplot(x="rank", y=loglogvariable, hue="sourceof_capacity", data=gcount,
-		        height=6, aspect=10/6, #size='count',
-			alpha=0.5, marker='o', linewidths=0, edgecolor='none',
-			hue_order=loglogcols, palette=loglogpalette)
-	ax = g.facet_axis(0,0)
-	ax.set_xscale('log')
-	ax.set_yscale('log')
-	ax.set_yticks([1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2])
-	ax.set_yticklabels(['0.1 kWp', '1 kWp', '10 kWp', '100 kWp', '1 MWp', '10 MWp', '100 MWp'])
-	ax.set_ylabel("Installation capacity")
-	ax.set_xlabel("Rank position of capacity")
-	plt.legend(loc="lower left")
-	plt.title("log-log plot (for checking power-law behaviour)")
+# Let's do a log-log plot of the long-tail distribution:
+# rank position on the x-axis, value on the y-axis, sourceof as the category
+loglogvariable = 'capacity_merged2_MWp'
+loglogcols = ["osm", "repd"] #"area_regress"#, "point"
+loglogpalette = ['b', 'r'] #'y'#, 'k'
+dflt = df[[loglogvariable, 'sourceof_capacity']].sort_values(inplace=False, axis=0, by=loglogvariable, ascending=False)
+dflt = dflt[dflt['sourceof_capacity'].isin(loglogcols)]
+dflt['rank'] = dflt[loglogvariable].rank(ascending=False)
+# Now, to reduce plot kb bulk, we aggregate the data by counting
+gcount = dflt.groupby([loglogvariable, 'sourceof_capacity', 'rank'],
+		observed=True).agg(count=('rank', 'count'))
+gcount.reset_index(inplace=True)
+g = sns.relplot(x="rank", y=loglogvariable, hue="sourceof_capacity", data=gcount,
+	        height=6, aspect=10/6, #size='count',
+		alpha=0.5, marker='o', linewidths=0, edgecolor='none',
+		hue_order=loglogcols, palette=loglogpalette)
+ax = g.facet_axis(0,0)
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_yticks([1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2])
+ax.set_yticklabels(['0.1 kWp', '1 kWp', '10 kWp', '100 kWp', '1 MWp', '10 MWp', '100 MWp'])
+ax.set_ylabel("Installation capacity")
+ax.set_xlabel("Rank position of capacity")
+plt.legend(loc="lower left")
+plt.title("log-log plot (for checking power-law behaviour)")
 
-	pdf.savefig(g.fig)
-	plt.close()
+pdf.savefig(g.fig)
+plt.close()
 
 ##############################################################################
 ##############################################################################

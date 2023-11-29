@@ -64,44 +64,21 @@ def convert_line_to_polygon(obj):
 	"NOTE: returns false if no conversion possible/needed"
 	coords = obj.coords
 	closed = coords[0]==coords[-1]
-	if not closed:
-		print("Warning, unclosed way (has %i points), consider inspecting it." % len(coords))
-		return False
-	else:
+	if closed:
 		return Polygon(coords)
+	print("Warning, unclosed way (has %i points), consider inspecting it." % len(coords))
+	return False
 
 geomconverted = {'LineString': 0, 'GeometryCollection_LineString': 0, 'nonosm_Point': 0}
 
-for index, row in  gdf[gdf.geom_type=='LineString'].iterrows():
-	newgeom = convert_line_to_polygon(row.geometry)
-	if not newgeom:
-		print(row.osm_id)
-	else:
+for index, row in gdf[gdf.geom_type=='LineString'].iterrows():
+	if newgeom := convert_line_to_polygon(row.geometry):
 		gdf.loc[index, 'geometry'] = newgeom
 		geomconverted['LineString'] += 1
 
-# TODO I can't correctly update the geomcoll for some reason
-if False:
-	for index, row in gdf[gdf.geom_type=='GeometryCollection'].iterrows():
-		print("%s %i, OSM id %i:" % (gdf.geom_type[index], index, row.osm_id))
-		print([item.geom_type for item in row.geometry])
-
-		for gindex, item in enumerate(row.geometry):
-			print(item)
-			bignewgeom = []
-			if item.geom_type=='LineString':
-				newgeom = convert_line_to_polygon(item)
-				if not newgeom:
-					print(row.osm_id, "entry %i" % gindex)
-					bignewgeom.append(item)
-				else:
-					bignewgeom.append(newgeom)
-					geomconverted['GeometryCollection_LineString'] += 1
-		#gdf.loc[index, 'geometry'] = GeometryCollection(bignewgeom)
-		row.geometry = GeometryCollection(bignewgeom)
-		gdf.iloc[index] = row
-
-print("Converted geometries. Converted: %s. Results:" % str(geomconverted))
+	else:
+		print(row.osm_id)
+print(f"Converted geometries. Converted: {geomconverted}. Results:")
 print(gdf.geom_type.value_counts())
 
 #########################################################################

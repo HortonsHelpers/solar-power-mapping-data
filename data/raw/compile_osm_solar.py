@@ -47,10 +47,7 @@ def PolyArea(x,y):
 
 def guess_kilowattage(anobj):
 	"This should NOT NORMALLY BE USED since it is really only a rule of thumb."
-	if not anobj['calc_area']:
-		return 1.
-	else:
-		return anobj['calc_area'] * 0.15
+	return 1. if not anobj['calc_area'] else anobj['calc_area'] * 0.15
 
 regex_numbers_semicolon_start = re.compile('^([0-9;]*).*')
 
@@ -102,7 +99,7 @@ class SolarXMLHandler(sax.handler.ContentHandler):
 		self.waydata = {}
 		self.reldata = {}
 
-	def startElement (self, name, attrs):
+	def startElement(self, name, attrs):
 		if name in ['node', 'way', 'relation']: # start a new "object" with empty tags
 			self.curitem = {'id': attrs['id'], 'timestamp': attrs['timestamp'], 'user': attrs.get('user', ''), 'tags':{}, 'objtype': name}
 		if name == 'node':
@@ -126,7 +123,9 @@ class SolarXMLHandler(sax.handler.ContentHandler):
 			elif attrs['type'] == 'node':
 				self.curitem['nodes'].append({'ref':attrs['ref'], 'role':attrs['role']})
 			else:
-				raise ValueError("This script does not know how to handle the following member-type found in relation %s: '%s'" % (self.curitem['id'], attrs['type']))
+				raise ValueError(
+					f"This script does not know how to handle the following member-type found in relation {self.curitem['id']}: '{attrs['type']}'"
+				)
 
 	def endElement(self, name):
 		if name in ['node', 'way', 'relation']: # finish off, and store, the "object"
@@ -414,11 +413,6 @@ class SolarXMLHandler(sax.handler.ContentHandler):
 							curitem['plantref'] = self.plantoutlines[arrayposition]['plantref']
 							#print("       spatially inferred generator %s/%s belongs to plant %s" % (curitem['objtype'], curitem['id'], curitem['plantref']))
 
-		if False: # This should NOT NORMALLY be activated. It inserts "guesstimate" power capacities for small-scale solar PV
-			for curitem in self.objs:
-				if curitem['tag_power']=='generator' and curitem.get('calc_capacity', 0)==0 and not curitem.get('plantref', None):
-					curitem['calc_capacity'] = guess_kilowattage(curitem)
-
 
 	def _recurse_relation_info(self, curitem, plantitem, plantref):
 		"""Pushes down through relations' members, for two reasons: to compile their areas onto the parent, and to propagate the parent plant reference down to all.
@@ -476,23 +470,13 @@ handler.postprocess()
 allattribs = set()
 for obj in handler.objs:
 	allattribs = allattribs.union(set(obj))
-allattribs = allattribs.difference(set(['nodes', 'ways', 'relations', 'tags']))
+allattribs = allattribs.difference({'nodes', 'ways', 'relations', 'tags'})
 
 # some overcomplex coding to sort attributes in the way I want
 attribstarters = ['objtype', 'id', 'user', 'timestamp', 'lat', 'lon']
 def attribsorter(a):
-	if a in attribstarters:
-		return "a_%i" % attribstarters.index(a)
-	else:
-		return "b_%s" % a
+	return "a_%i" % attribstarters.index(a) if a in attribstarters else f"b_{a}"
 allattribs = sorted(list(allattribs), key=attribsorter)
-
-if False:
-	print()
-	print("All object attributes in play:")
-	for anattrib in allattribs:
-		print(anattrib)
-	print()
 
 # output happy stats
 osmtotalobjs = len(handler.objs)
@@ -515,8 +499,8 @@ for item in handler.objs:
 
 readable = "standalone"
 subset = [_ for _ in handler.objs if _['tag_power']=='generator' and not _.get('plantref', None)]
-print("Solar PV panel items (power=generator) (%s):" % readable)
-print("   %i in total"                                                                    % len([_ for _ in subset]))
+print(f"Solar PV panel items (power=generator) ({readable}):")
+print("   %i in total" % len(list(subset)))
 print("   %g sq km total surface area"  % (1e-6 * np.sum([_['calc_area']                           for _ in subset])))
 print("   %g MW total generating capacity (NB metadata will be v incomplete for this)" % (1e-3 * np.sum([_.get('calc_capacity',0)             for _ in subset])))
 print("   %i nodes with no sqm tagged (could presume 'domestic', but needs more tagging)" % len([_ for _ in subset if    _['calc_area']==0]))
@@ -526,8 +510,8 @@ print("   %i areas > 2000 sqm (inspect to see if should really be tagged 'solar 
 
 readable = "within a farm"
 subset = [_ for _ in handler.objs if _['tag_power']=='generator' and     _.get('plantref', None)]
-print("Solar PV panel items (power=generator) (%s):" % readable)
-print("   %i in total"                                                                    % len([_ for _ in subset]))
+print(f"Solar PV panel items (power=generator) ({readable}):")
+print("   %i in total" % len(list(subset)))
 print("   %g sq km total surface area"  % (1e-6 * np.sum([_['calc_area']                           for _ in subset])))
 print("   %i nodes with no sqm tagged"                                                    % len([_ for _ in subset if    _['calc_area']==0]))
 print("   %i areas <= 30 sqm"                                                             % len([_ for _ in subset if  0<_['calc_area']<=30]))
@@ -549,8 +533,7 @@ print("   %i areas > 2000 sqm"                                                  
 def csvformatspecialfields(k, v):
 	"special formatting sometimes needed"
 	if k=='plantref':
-		if not v: return ''
-		return "%s/%s" % v
+		return '' if not v else "%s/%s" % v
 	return v
 
 try:
